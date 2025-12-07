@@ -24,6 +24,14 @@ class BalatroTracker:
         self.card_display_width = 71  # Match actual card width
         self.card_display_height = 95  # Match actual card height
         
+        # Set minimum window size
+        # Minimum width: enough for cards with 70% overlap
+        # 13 cards with 70% overlap = 13 * 71 - 12 * (71 * 0.7) = 923 - 596 = 327px
+        min_width = int(13 * self.card_display_width - 12 * (self.card_display_width * 0.55)) + 15
+        # Minimum height: all UI components
+        min_height = 710
+        self.root.minsize(min_width, min_height)
+        
         # Dark theme colors
         self.bg_color = '#2b2b2b'
         self.canvas_bg = '#1e1e1e'
@@ -197,7 +205,9 @@ class BalatroTracker:
                             render_mode = render_modes[i] if i < len(render_modes) else 'overlay'
                             opacity = opacities[i] if i < len(opacities) else 1.0
                             blend_mode = blend_modes[i] if i < len(blend_modes) else 'normal'
-                            modifiers.append((idx, sprite, 'edition', render_mode, opacity, blend_mode))
+                            # Last edition (index 4) is debuff, separate category
+                            mod_type = 'debuff' if idx == 4 else 'edition'
+                            modifiers.append((idx, sprite, mod_type, render_mode, opacity, blend_mode))
                     else:
                         print("Warning: Editions sheet not found")
             else:
@@ -228,11 +238,27 @@ class BalatroTracker:
         except Exception as e:
             print(f"Warning: Could not load modifiers: {e}")
     
-    def _create_modifier_button(self, sprite_idx, sprite, display_idx, mod_type, render_mode='overlay', opacity=1.0, blend_mode='normal'):
+    def _create_modifier_button(self, sprite_idx, sprite, display_idx, mod_type, render_mode='overlay', opacity=1.0, blend_mode='normal', spacing_override=None):
         """Create a clickable modifier button"""
         try:
-            # Resize image
+            # For seals, crop to just the circular seal part
             img = sprite.copy()
+            if 'seal' in mod_type:
+                # Seal dimensions: starts at x=13, width=27, ends at x=40 (out of 69 total width)
+                # Calculate crop box maintaining aspect ratio
+                original_width = img.width
+                original_height = img.height
+                
+                # Calculate crop coordinates based on proportions
+                left = int(original_width * (13 / 69))
+                right = int(original_width * (40 / 69))
+                top = 0
+                bottom = original_height
+                
+                # Crop to just the seal circle
+                img = img.crop((left, top, right, bottom))
+            
+            # Resize image
             img.thumbnail((self.card_display_width, self.card_display_height), Image.Resampling.LANCZOS)
             photo = ImageTk.PhotoImage(img)
             
@@ -252,6 +278,9 @@ class BalatroTracker:
                 'blend_mode': blend_mode
             }
             
+            # Calculate display width (seals are cropped to ~39% of card width: 27/69)
+            display_width = img.width if 'seal' in mod_type else self.card_display_width
+            
             # Calculate initial position
             x = display_idx * (self.card_display_width + self.card_spacing)
             y = 0
@@ -259,13 +288,22 @@ class BalatroTracker:
             # Create image on canvas
             img_id = self.modifiers_canvas.create_image(x, y, image=photo, anchor=tk.NW)
             
-            # Store img_id and position info
+            # Store img_id, position info, mod_type, display width, and spacing override
             if not hasattr(self, 'modifier_img_ids'):
                 self.modifier_img_ids = {}
             if not hasattr(self, 'modifier_positions'):
                 self.modifier_positions = {}
+            if not hasattr(self, 'modifier_spacing_overrides'):
+                self.modifier_spacing_overrides = {}
+            if not hasattr(self, 'modifier_types'):
+                self.modifier_types = {}
+            if not hasattr(self, 'modifier_display_widths'):
+                self.modifier_display_widths = {}
             self.modifier_img_ids[modifier_key] = img_id
             self.modifier_positions[modifier_key] = display_idx
+            self.modifier_spacing_overrides[modifier_key] = spacing_override
+            self.modifier_types[modifier_key] = mod_type
+            self.modifier_display_widths[modifier_key] = display_width
             
             # Bind click event to select modifier
             self.modifiers_canvas.tag_bind(img_id, '<Button-1>',
@@ -289,6 +327,10 @@ class BalatroTracker:
             category = 'enhancement'
             old_selection = self.selected_enhancement
             self.selected_enhancement = (modifier_key, sprite_idx) if old_selection != (modifier_key, sprite_idx) else None
+        elif 'debuff' in mod_type:
+            category = 'debuff'
+            old_selection = getattr(self, 'selected_debuff', None)
+            self.selected_debuff = (modifier_key, sprite_idx) if old_selection != (modifier_key, sprite_idx) else None
         elif 'edition' in mod_type:
             category = 'edition'
             old_selection = self.selected_edition
@@ -622,6 +664,15 @@ class BalatroTracker:
                     seal = seal.resize(result.size, Image.Resampling.LANCZOS)
                 result = Image.alpha_composite(result, seal)
         
+        # Apply debuff (always overlay)
+        if hasattr(self, 'selected_debuff') and self.selected_debuff and hasattr(self, 'modifier_sprites'):
+            modifier_key, _ = self.selected_debuff
+            if modifier_key in self.modifier_sprites:
+                debuff = self.modifier_sprites[modifier_key].copy().convert('RGBA')
+                if debuff.size != result.size:
+                    debuff = debuff.resize(result.size, Image.Resampling.LANCZOS)
+                result = Image.alpha_composite(result, debuff)
+        
         return result
     
     def add_card_with_modifiers(self, card_name):
@@ -646,6 +697,9 @@ class BalatroTracker:
         if self.selected_seal:
             _, idx = self.selected_seal
             modifiers_applied.append(('seal', idx))
+        if hasattr(self, 'selected_debuff') and self.selected_debuff:
+            _, idx = self.selected_debuff
+            modifiers_applied.append(('debuff', idx))
         
         # Add to order
         self.card_order.append((card_name, final_sprite, modifiers_applied))
@@ -843,15 +897,12 @@ class BalatroTracker:
     
     def _on_window_resize(self, event):
         """Handle window resize to adjust card spacing"""
-        # Only respond to canvas resize events
+        # Respond to root window resize events
         if event.widget != self.root:
             return
         
-        # Debounce resize events
-        if hasattr(self, '_resize_timer'):
-            self.root.after_cancel(self._resize_timer)
-        
-        self._resize_timer = self.root.after(100, self._recalculate_card_positions)
+        # Update immediately without debounce for live feedback
+        self._recalculate_card_positions()
     
     def _recalculate_card_positions(self):
         """Recalculate card positions based on available width"""
@@ -903,43 +954,144 @@ class BalatroTracker:
         self._recalculate_modifier_positions()
     
     def _recalculate_modifier_positions(self):
-        """Recalculate modifier positions to match card spacing"""
+        """Recalculate modifier positions grouped by category with dynamic spacing"""
         if not hasattr(self, 'modifier_positions') or not hasattr(self, 'modifier_img_ids'):
             return
         
-        # Get available width from modifiers canvas
-        canvas_width = self.modifiers_canvas.winfo_width()
+        # Match the playing cards canvas width exactly
+        canvas_width = self.card_grid_canvas.winfo_width()
         if canvas_width <= 1:  # Canvas not yet rendered
             return
         
-        # Calculate how many modifiers we have
-        modifier_count = len(self.modifier_positions)
-        if modifier_count == 0:
-            return
+        # Update modifiers canvas to match playing cards width
+        self.modifiers_canvas.config(width=canvas_width)
         
-        # Calculate spacing (same logic as cards)
-        available_width = canvas_width - 20
-        calculated_spacing = (available_width - (modifier_count * self.card_display_width)) / (modifier_count - 1) if modifier_count > 1 else 0
+        # Group modifiers by category
+        categories = {
+            'enhancement': [],
+            'edition': [],
+            'seal': [],
+            'debuff': []
+        }
         
-        # Clamp spacing
+        for modifier_key, display_idx in self.modifier_positions.items():
+            mod_type = self.modifier_types.get(modifier_key, '')
+            if 'enhancement' in mod_type:
+                categories['enhancement'].append((modifier_key, display_idx))
+            elif 'debuff' in mod_type:
+                categories['debuff'].append((modifier_key, display_idx))
+            elif 'edition' in mod_type:
+                categories['edition'].append((modifier_key, display_idx))
+            elif 'seal' in mod_type:
+                categories['seal'].append((modifier_key, display_idx))
+        
+        # Sort each category by display index
+        for cat in categories.values():
+            cat.sort(key=lambda x: x[1])
+        
+        # Constants
+        category_gap = 10  # Gap between categories
         max_spacing = self.card_spacing
         min_spacing = -self.card_display_width * 0.7
-        actual_spacing = max(min_spacing, min(max_spacing, calculated_spacing))
         
-        # Update modifier positions
-        for modifier_key, display_idx in self.modifier_positions.items():
-            if modifier_key in self.modifier_img_ids:
-                # Calculate new position
-                x = display_idx * (self.card_display_width + actual_spacing)
-                y = 0
+        # Seal spacing limits (can overlap but not as much as cards)
+        max_seal_spacing = 5  # Maximum spacing between seals
+        min_seal_spacing = -10  # Minimum spacing (allow some overlap)
+        
+        # Count total items
+        total_overlap_items = len(categories['enhancement']) + len(categories['edition']) + len(categories['debuff'])
+        total_seal_items = len(categories['seal'])
+        
+        # Count gaps (only between non-empty categories)
+        non_empty_cats = [cat for cat in ['enhancement', 'edition', 'seal', 'debuff'] if categories[cat]]
+        total_gaps = (len(non_empty_cats) - 1) * category_gap if len(non_empty_cats) > 1 else 0
+        
+        # Calculate total width needed at maximum spacing
+        total_seal_width_max = 0
+        if categories['seal']:
+            for modifier_key, _ in categories['seal']:
+                total_seal_width_max += self.modifier_display_widths.get(modifier_key, self.card_display_width)
+            total_seal_width_max += (total_seal_items - 1) * max_seal_spacing if total_seal_items > 1 else 0
+        
+        total_overlap_width_max = total_overlap_items * self.card_display_width
+        if total_overlap_items > 1:
+            total_overlap_width_max += (total_overlap_items - 1) * max_spacing
+        
+        # Available width
+        available_width = canvas_width - 20
+        total_needed = total_seal_width_max + total_overlap_width_max + total_gaps
+        
+        # Calculate dynamic spacing
+        if total_needed > available_width:
+            # Need to compress - calculate how much space we have
+            available_for_items = available_width - total_gaps
+            
+            # Calculate seal widths (sum of actual widths)
+            seal_widths_sum = sum(self.modifier_display_widths.get(mk, self.card_display_width) for mk, _ in categories['seal'])
+            
+            # Calculate spacing for both categories
+            if total_overlap_items > 0 and total_seal_items > 0:
+                # Distribute remaining space proportionally
+                total_items = total_overlap_items + total_seal_items
+                total_gaps_needed = (total_overlap_items - 1) + (total_seal_items - 1) if total_items > 1 else 0
                 
-                # Update canvas item position
-                img_id = self.modifier_img_ids[modifier_key]
-                self.modifiers_canvas.coords(img_id, x, y)
-                
-                # Adjust z-order: lower index = higher z-order (leftmost on top)
-                # Reverse of cards - we want left modifiers on top
-                self.modifiers_canvas.tag_lower(img_id)
+                if total_gaps_needed > 0:
+                    avg_spacing = (available_for_items - (total_overlap_items * self.card_display_width) - seal_widths_sum) / total_gaps_needed
+                    overlap_spacing = max(min_spacing, min(max_spacing, avg_spacing))
+                    seal_spacing = max(min_seal_spacing, min(max_seal_spacing, avg_spacing))
+                else:
+                    overlap_spacing = max_spacing
+                    seal_spacing = max_seal_spacing
+            elif total_overlap_items > 0:
+                calculated_spacing = (available_for_items - (total_overlap_items * self.card_display_width)) / (total_overlap_items - 1) if total_overlap_items > 1 else 0
+                overlap_spacing = max(min_spacing, min(max_spacing, calculated_spacing))
+                seal_spacing = max_seal_spacing
+            else:
+                overlap_spacing = max_spacing
+                calculated_seal_spacing = (available_for_items - seal_widths_sum) / (total_seal_items - 1) if total_seal_items > 1 else 0
+                seal_spacing = max(min_seal_spacing, min(max_seal_spacing, calculated_seal_spacing))
+        else:
+            # Plenty of space - use maximum spacing
+            overlap_spacing = max_spacing
+            seal_spacing = max_seal_spacing
+        
+        # Position modifiers by category
+        x_offset = 0
+        
+        for cat_name in ['enhancement', 'edition', 'seal', 'debuff']:
+            cat_modifiers = categories[cat_name]
+            if not cat_modifiers:
+                continue
+            
+            # Track position within seal category
+            seal_x_offset = 0
+            
+            for i, (modifier_key, display_idx) in enumerate(cat_modifiers):
+                if modifier_key in self.modifier_img_ids:
+                    # Calculate position within category
+                    if cat_name == 'seal':
+                        x = x_offset + seal_x_offset
+                        # Add this seal's width for next seal
+                        seal_x_offset += self.modifier_display_widths.get(modifier_key, self.card_display_width) + seal_spacing
+                    else:
+                        x = x_offset + (i * (self.card_display_width + overlap_spacing))
+                    
+                    # Update canvas item position
+                    img_id = self.modifier_img_ids[modifier_key]
+                    self.modifiers_canvas.coords(img_id, x, 0)
+                    
+                    # Adjust z-order: lower index = higher z-order (leftmost on top)
+                    self.modifiers_canvas.tag_lower(img_id)
+            
+            # Move offset for next category
+            if cat_name == 'seal':
+                # Use actual seal widths
+                category_width = sum(self.modifier_display_widths.get(mk, self.card_display_width) for mk, _ in cat_modifiers)
+                category_width += (len(cat_modifiers) - 1) * seal_spacing if len(cat_modifiers) > 1 else 0
+                x_offset += category_width + category_gap
+            else:
+                if len(cat_modifiers) > 0:
+                    x_offset += self.card_display_width + (len(cat_modifiers) - 1) * (self.card_display_width + overlap_spacing) + category_gap
     
     def _load_card_order_config(self):
         """Load card order configuration from JSON file"""
