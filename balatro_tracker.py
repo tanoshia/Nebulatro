@@ -67,6 +67,9 @@ class BalatroTracker:
         
         # Bind window resize event
         self.root.bind('<Configure>', self._on_window_resize)
+        
+        # Force recalculation of modifier positions after window is shown
+        self.root.after(100, self._recalculate_modifier_positions)
     
     def setup_ui(self):
         """Create the UI layout"""
