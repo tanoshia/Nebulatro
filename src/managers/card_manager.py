@@ -54,6 +54,7 @@ class CardManager:
         
         # Track which cards have been replaced with collabs
         collab_replaced_indices = set()
+        collab_faces = {}
         
         if use_custom_order:
             order_indices = self.card_order_config['playing_cards_order']['sprite_sheet_mapping']['order']
@@ -62,7 +63,7 @@ class CardManager:
             
             # Apply collab face cards if design_manager provided
             if design_manager:
-                ordered_sprites, collab_replaced_indices = design_manager.apply_collab_face_cards(
+                ordered_sprites, collab_replaced_indices, collab_faces = design_manager.apply_collab_face_cards(
                     ordered_sprites, order_indices)
         else:
             ordered_sprites = sprites
@@ -87,7 +88,8 @@ class CardManager:
             
             # Check if this card was replaced with a collab
             is_collab = idx in collab_replaced_indices
-            self.create_card_button(card_name, sprite, row, col, is_collab)
+            collab_face = collab_faces.get(idx) if is_collab else None
+            self.create_card_button(card_name, sprite, row, col, is_collab, collab_face)
         
         return canvas_width, canvas_height
     
@@ -115,21 +117,18 @@ class CardManager:
                 return name
         return sheet_names[0]
     
-    def create_card_button(self, card_name, sprite, row, col, is_collab=False):
+    def create_card_button(self, card_name, sprite, row, col, is_collab=False, collab_face=None):
         """Create a clickable card button"""
         try:
             # Store base sprite and face
             self.base_card_sprites[card_name] = sprite
             
             # Extract card face (without backing)
-            # For collab cards, the sprite is already composited, so we need to extract the face differently
             if self.sprite_loader and self.sprite_loader.card_back:
                 try:
-                    if is_collab:
-                        # For collab cards, we need to extract the face from the already-composited sprite
-                        # This is tricky - for now, just use the composited sprite as the face
-                        # The modifier system will handle it
-                        self.card_faces[card_name] = sprite
+                    if is_collab and collab_face is not None:
+                        # For collab cards, use the provided face without backing
+                        self.card_faces[card_name] = collab_face
                     elif '_' in card_name and card_name.split('_')[-1].isdigit():
                         sprite_idx = int(card_name.split('_')[-1])
                         sheet_name = '_'.join(card_name.split('_')[:-1])

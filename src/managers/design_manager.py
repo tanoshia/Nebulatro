@@ -108,13 +108,14 @@ class DesignManager:
         """Replace face cards with collab sprites if selected
         
         Returns:
-            tuple: (ordered_sprites, set of replaced indices)
+            tuple: (ordered_sprites, set of replaced indices, dict of collab faces without backing)
         """
         replaced_indices = set()
+        collab_faces = {}  # Store faces without backing for modifier application
         
         has_collabs = any(var.get() != "Default" for var in self.face_card_collabs.values())
         if not has_collabs:
-            return ordered_sprites, replaced_indices
+            return ordered_sprites, replaced_indices, collab_faces
         
         try:
             with open('config/resource_mapping.json', 'r') as f:
@@ -158,22 +159,28 @@ class DesignManager:
                 for face_name, col_idx in face_cols.items():
                     collab_idx = collab_to_display[face_name]
                     left = collab_idx * card_width
-                    face_sprite = collab_img.crop((left, 0, left + card_width, card_height))
+                    face_only = collab_img.crop((left, 0, left + card_width, card_height))
                     
+                    # Store the face without backing for modifier application
+                    display_idx = row_idx * 13 + col_idx
+                    collab_faces[display_idx] = face_only.copy()
+                    
+                    # Composite with backing for display
                     if self.sprite_loader and self.sprite_loader.card_back:
                         back = self.sprite_loader.card_back.copy()
-                        if back.size != face_sprite.size:
-                            back = back.resize(face_sprite.size, Image.Resampling.LANCZOS)
+                        if back.size != face_only.size:
+                            back = back.resize(face_only.size, Image.Resampling.LANCZOS)
                         result = back.copy()
-                        result.paste(face_sprite, (0, 0), face_sprite)
-                        face_sprite = result
+                        result.paste(face_only, (0, 0), face_only)
+                        composited_sprite = result
+                    else:
+                        composited_sprite = face_only
                     
-                    display_idx = row_idx * 13 + col_idx
                     if display_idx < len(ordered_sprites):
-                        ordered_sprites[display_idx] = face_sprite
+                        ordered_sprites[display_idx] = composited_sprite
                         replaced_indices.add(display_idx)
         
         except Exception as e:
             print(f"Warning: Could not apply collab face cards: {e}")
         
-        return ordered_sprites, replaced_indices
+        return ordered_sprites, replaced_indices, collab_faces
