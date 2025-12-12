@@ -113,19 +113,15 @@ class BalatroCardDataset(Dataset):
     def __getitem__(self, idx):
         sample = self.samples[idx]
         
-        # Get card image and extract corner region (35% from top-left)
+        # Get full card image (no longer using corner region)
         image = sample['image']
-        h, w = image.size[1], image.size[0]
-        corner_h = int(h * 0.35)
-        corner_w = int(w * 0.35)
-        corner = image.crop((0, 0, corner_w, corner_h))
         
         # Apply transforms
         if self.transform:
-            corner = self.transform(corner)
+            image = self.transform(image)
         
         return {
-            'image': corner,
+            'image': image,
             'card_class': torch.tensor(sample['card_class'], dtype=torch.long),
             'modifiers': {
                 k: torch.tensor(v, dtype=torch.long) 

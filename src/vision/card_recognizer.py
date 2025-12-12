@@ -202,22 +202,16 @@ class CardRecognizer:
         # Convert to numpy array
         card_array = np.array(card_image.convert('RGB'))
         
-        # Focus on top-left corner (rank and suit indicators)
-        # Use top 35% to capture rank/suit and avoid modifiers in center
-        h, w = card_array.shape[:2]
-        corner_h = int(h * 0.35)
-        corner_w = int(w * 0.35)
-        card_corner = card_array[:corner_h, :corner_w]
-        
+        # Use full card image for recognition (matches training data)
         if use_features:
-            return self._recognize_with_features(card_corner)
+            return self._recognize_with_features(card_array)
         else:
-            return self._recognize_with_template(card_corner)
+            return self._recognize_with_template(card_array)
     
-    def _recognize_with_features(self, card_corner):
+    def _recognize_with_features(self, card_image):
         """Use ORB feature matching for robust recognition"""
         # Convert to grayscale
-        card_gray = cv2.cvtColor(card_corner, cv2.COLOR_RGB2GRAY)
+        card_gray = cv2.cvtColor(card_image, cv2.COLOR_RGB2GRAY)
         
         # Initialize ORB detector
         orb = cv2.ORB_create(nfeatures=500)
@@ -227,7 +221,7 @@ class CardRecognizer:
         
         if des1 is None or len(kp1) < 10:
             # Not enough features, fall back to template matching
-            return self._recognize_with_template(card_corner)
+            return self._recognize_with_template(card_image)
         
         # Create BFMatcher
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
@@ -236,10 +230,8 @@ class CardRecognizer:
         best_score = 0
         
         for card_idx, template in self.card_templates.items():
-            # Extract template corner
-            t_h, t_w = template.shape[:2]
-            template_corner = template[:int(t_h * 0.35), :int(t_w * 0.35)]
-            template_gray = cv2.cvtColor(template_corner, cv2.COLOR_RGB2GRAY)
+            # Use full template image
+            template_gray = cv2.cvtColor(template, cv2.COLOR_RGB2GRAY)
             
             # Detect keypoints and descriptors for template
             kp2, des2 = orb.detectAndCompute(template_gray, None)
@@ -279,28 +271,25 @@ class CardRecognizer:
         
         return None, 0
     
-    def _recognize_with_template(self, card_corner):
+    def _recognize_with_template(self, card_image):
         """Fallback template matching method"""
         best_match = None
         best_score = 0
         
         for card_idx, template in self.card_templates.items():
-            # Extract template corner
-            t_h, t_w = template.shape[:2]
-            template_corner = template[:int(t_h * 0.35), :int(t_w * 0.35)]
-            
+            # Use full template image
             # Calculate scale
-            scale_h = card_corner.shape[0] / template_corner.shape[0]
-            scale_w = card_corner.shape[1] / template_corner.shape[1]
+            scale_h = card_image.shape[0] / template.shape[0]
+            scale_w = card_image.shape[1] / template.shape[1]
             scale = (scale_h + scale_w) / 2
             
             # Resize template
-            scaled_h = min(int(template_corner.shape[0] * scale), card_corner.shape[0])
-            scaled_w = min(int(template_corner.shape[1] * scale), card_corner.shape[1])
+            scaled_h = min(int(template.shape[0] * scale), card_image.shape[0])
+            scaled_w = min(int(template.shape[1] * scale), card_image.shape[1])
             
             try:
-                template_resized = cv2.resize(template_corner, (scaled_w, scaled_h))
-                result = cv2.matchTemplate(card_corner, template_resized, cv2.TM_CCOEFF_NORMED)
+                template_resized = cv2.resize(template, (scaled_w, scaled_h))
+                result = cv2.matchTemplate(card_image, template_resized, cv2.TM_CCOEFF_NORMED)
                 _, max_val, _, _ = cv2.minMaxLoc(result)
                 
                 if max_val > best_score:

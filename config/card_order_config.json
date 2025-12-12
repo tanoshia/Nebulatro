@@ -14,19 +14,12 @@
       ]
     }
   },
-  "suits_order": {
-    "description": "Display order for suit-only cards in data labeling mode",
+  "suits": {
+    "description": "Suit symbols for 'Suit Only' labeling, displayed left of playing cards",
     "sprite_sheet": "1x4 Suits.png",
-    "suits": ["S", "H", "C", "D"],
-    "display_order": [3, 0, 1, 2],
-    "note": "Display order: Spades (top), Hearts, Clubs, Diamonds (bottom). Maps to sprite indices 3,0,1,2"
-  },
-  "data_labeling_layout": {
-    "description": "Layout configuration for data labeling mode",
-    "suits_column_width": 100,
-    "cards_column_min_width": 800,
-    "cards_column_max_width": 1200,
-    "note": "Widths in pixels. suits_column_width is fixed, cards column expands between min and max"
+    "order": ["S", "H", "C", "D"],
+    "indices": [3, 0, 1, 2],
+    "note": "Vertically stacked: Heart (top, index 0), then Clubs (1), Diamonds (2), Spades (bottom, index 3). Display order: Spades, Hearts, Clubs, Diamonds"
   },
   "modifiers": {
     "description": "Card modifiers displayed above playing cards",

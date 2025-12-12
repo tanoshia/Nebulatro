@@ -162,8 +162,8 @@ class LayoutManager:
         required_height = (40 + self.card_display_height + 10 + canvas_height + 20 + 
                           20 + 30 + 100 + 50 + 20)
         
-        max_width = int(screen_width * 0.9)
-        max_height = int(screen_height * 0.9)
+        max_width = int(screen_width * 0.95)
+        max_height = int(screen_height * 0.95)
         
         window_width = min(required_width, max_width)
         window_height = min(required_height, max_height)

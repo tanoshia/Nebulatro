@@ -23,12 +23,9 @@ def show_card_reference():
             print(f"  {class_id:2d}: {rank}")
 
 
-def extract_corner(image, corner_ratio=0.35):
-    """Extract top-left corner region (where rank/suit are visible)"""
-    h, w = image.shape[:2]
-    corner_h = int(h * corner_ratio)
-    corner_w = int(w * corner_ratio)
-    return image[:corner_h, :corner_w]
+def process_image(image):
+    """Process image for training (now uses full image)"""
+    return image
 
 
 def label_card(image_path):
@@ -45,14 +42,14 @@ def label_card(image_path):
         print(f"Error: Could not load {image_path}")
         return
     
-    # Extract corner region (this is what the model will see)
-    corner = extract_corner(image)
+    # Process image (now uses full image)
+    processed_image = process_image(image)
     
-    # Save corner preview in the same directory as the card
+    # Save preview in the same directory as the card
     preview_dir = image_path.parent / "previews"
     preview_dir.mkdir(exist_ok=True)
-    preview_path = preview_dir / f"{image_path.stem}_corner.png"
-    cv2.imwrite(str(preview_path), corner)
+    preview_path = preview_dir / f"{image_path.stem}_preview.png"
+    cv2.imwrite(str(preview_path), processed_image)
     
     # Also save a side-by-side comparison
     full_resized = cv2.resize(image, (200, 240))  # Resize full card for comparison
@@ -112,19 +109,13 @@ def save_labeled_card(image_path, class_id):
     
     # Load and process image
     image = cv2.imread(str(image_path))
-    corner = extract_corner(image)
+    processed_image = process_image(image)
     
-    # Save corner region (this is what the model trains on)
-    output_path = class_dir / f"{image_path.stem}_corner.png"
-    cv2.imwrite(str(output_path), corner)
+    # Save processed image (full image for training)
+    output_path = class_dir / f"{image_path.stem}.png"
+    cv2.imwrite(str(output_path), processed_image)
     
     print(f"✓ Saved to: {output_path}")
-    
-    # Also save full card for reference
-    ref_dir = class_dir / "reference"
-    ref_dir.mkdir(exist_ok=True)
-    ref_path = ref_dir / f"{image_path.stem}_full.png"
-    cv2.imwrite(str(ref_path), image)
     
     return output_path
 
