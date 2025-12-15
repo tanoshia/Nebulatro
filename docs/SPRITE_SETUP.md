@@ -30,7 +30,7 @@ COLSxROWS Description.png
 3. **Run the tracker**:
    ```bash
    source venv/bin/activate
-   python3 balatro_tracker.py
+   python3 nebulatro.py
    ```
 
 That's it! No configuration files needed.
@@ -65,11 +65,6 @@ The tracker now uses Balatro's game resources directly via `resource_mapping.jso
    cp -r /path/to/Balatro/resources ./
    ```
 
-2. **Run the tracker**:
-   ```bash
-   source venv/bin/activate
-   python3 balatro_tracker.py
-   ```
 
 The system will:
 - Load sprite sheets from `resources/textures/1x/`
@@ -93,7 +88,7 @@ If you don't have access to game resources:
 3. **Run the tracker**:
    ```bash
    source venv/bin/activate
-   python3 balatro_tracker.py
+   python3 nebulatro.py
    ```
 
 ## Tips

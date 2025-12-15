@@ -1,0 +1,358 @@
+# Nebulatro Architecture Diagram
+
+## System Overview
+
+```mermaid
+graph TB
+    subgraph "Entry Points"
+        NEB[nebulatro.py<br/>Main Launcher]
+        CLI[CLI Tools<br/>extract_cards, batch_label, etc.]
+    end
+    
+    subgraph "Core Application"
+        MAIN[src/main.py<br/>Application Orchestrator]
+        
+        subgraph "Managers"
+            CM[CardManager<br/>Card Order & Display]
+            MM[ModifierManager<br/>Enhancements/Editions/Seals]
+            DM[DesignManager<br/>Contrast & Collabs]
+            LM[LabelingManager<br/>Data Labeling Mode]
+            CDM[CardDisplayManager<br/>Visual Rendering]
+            MOM[ModeManager<br/>Mode Switching]
+        end
+        
+        subgraph "UI Components"
+            COMP[ui/components.py<br/>UI Elements]
+        end
+        
+        subgraph "Utilities"
+            SL[utils/sprite_loader.py<br/>Image Loading]
+            FO[utils/file_operations.py<br/>File Handling]
+        end
+    end
+    
+    subgraph "Machine Learning Pipeline"
+        subgraph "Vision System"
+            SC[vision/screen_capture.py<br/>Frame Capture]
+            CR[vision/card_recognizer.py<br/>Template Matching]
+        end
+        
+        subgraph "ML Models"
+            CC[ml/card_classifier.py<br/>CNN Models ResNet18]
+            MC[ml/modifier_classifier.py<br/>Multi-label Classifier]
+            DG[ml/data_generator.py<br/>Synthetic Data]
+            TR[ml/trainer.py<br/>PyTorch Training]
+        end
+        
+        subgraph "State Management"
+            SB[ml/state_builder.py<br/>Game State Builder]
+            AB[ml/annotation_builder.py<br/>Training Annotations]
+            SS[ml/state_schema.py<br/>State Validation]
+        end
+    end
+    
+    subgraph "Data & Configuration"
+        subgraph "Configuration"
+            COC[config/card_order_config.json<br/>Display Order]
+            RM[config/resource_mapping.json<br/>Sprite Definitions]
+        end
+        
+        subgraph "Assets"
+            ASSETS[assets/<br/>Sprite Sheets & Icons]
+            RES[resources/textures/1x/<br/>Game Resources]
+        end
+        
+        subgraph "Dataset"
+            DS[dataset/<br/>Training Data]
+            RAW[dataset/raw/<br/>Screenshots]
+            PROC[dataset/processed/<br/>Labeled Images]
+            DEBUG[dataset/debug_cards/<br/>Extracted Cards]
+            STATES[dataset/states/<br/>Canonical Game States]
+            ANNOT[dataset/annotations/<br/>Rich Labeling Metadata]
+        end
+        
+        subgraph "Models"
+            MODELS[models/<br/>Saved Checkpoints]
+        end
+    end
+    
+    subgraph "Tools & Scripts"
+        EXT[tools/extract_cards_from_screenshot.py]
+        BL[tools/batch_label_cards.py]
+        LSC[tools/label_single_card.py]
+        CTD[tools/collect_training_data.py]
+        SETUP[ml/setup_ml.py]
+        TRAIN[ml/train_card_classifier.py]
+    end
+    
+    %% Entry Point Connections
+    NEB --> MAIN
+    CLI --> EXT
+    CLI --> BL
+    CLI --> LSC
+    CLI --> CTD
+    
+    %% Main Application Flow
+    MAIN --> CM
+    MAIN --> MM
+    MAIN --> DM
+    MAIN --> LM
+    MAIN --> CDM
+    MAIN --> MOM
+    
+    %% Manager Dependencies
+    CM --> SL
+    MM --> SL
+    DM --> SL
+    LM --> SL
+    LM --> FO
+    CDM --> SL
+    
+    %% UI Dependencies
+    MAIN --> COMP
+    LM --> COMP
+    
+    %% Configuration Dependencies
+    CM --> COC
+    SL --> RM
+    SL --> ASSETS
+    SL --> RES
+    
+    %% ML Pipeline Flow
+    SC --> CR
+    CR --> CC
+    CC --> MC
+    DG --> TR
+    TR --> MODELS
+    SB --> SS
+    AB --> SS
+    
+    %% Data Flow
+    EXT --> DEBUG
+    LM --> PROC
+    LM --> STATES
+    LM --> ANNOT
+    BL --> PROC
+    LSC --> PROC
+    CTD --> PROC
+    RAW --> EXT
+    PROC --> DG
+    PROC --> TR
+    STATES --> TR
+    ANNOT --> TR
+    
+    %% Styling
+    classDef entryPoint fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef manager fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef ml fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
+    classDef config fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef data fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    classDef tool fill:#f1f8e9,stroke:#33691e,stroke-width:2px,color:#000
+    
+    class NEB,CLI entryPoint
+    class CM,MM,DM,LM,CDM,MOM manager
+    class SC,CR,CC,MC,DG,TR,SB,AB,SS ml
+    class COC,RM,ASSETS,RES config
+    class DS,RAW,PROC,DEBUG,MODELS data
+    class EXT,BL,LSC,CTD,SETUP,TRAIN tool
+```
+
+## Mode Architecture
+
+```mermaid
+graph LR
+    subgraph "Application Modes"
+        MT[Manual Tracking Mode]
+        DL[Data Labeling Mode]
+    end
+    
+    subgraph "Manual Tracking Features"
+        MT --> CO[Card Order Display]
+        MT --> MOD[Modifier Overlays]
+        MT --> DESIGN[Card Designs]
+        MT --> SAVE[Save/Export]
+        CO --> CARDS[Playing Cards Grid]
+        MOD --> ENH[Enhancements]
+        MOD --> ED[Editions]
+        MOD --> SEAL[Seals]
+        MOD --> DEB[Debuffs]
+        DESIGN --> CONT[Contrast Toggle]
+        DESIGN --> COLLAB[Face Card Collabs]
+    end
+    
+    subgraph "Data Labeling Features"
+        DL --> LOAD[Load Card Images]
+        DL --> NAV[Navigation Controls]
+        DL --> LABEL[Visual Labeling]
+        DL --> SUITS[Suit Selection]
+        LOAD --> DEBUG[debug_cards/ Directory]
+        LABEL --> CLASS[Card Class Selection]
+        LABEL --> SPECIAL[Special Categories]
+        SPECIAL --> NC[not_card]
+        SPECIAL --> SO[suit_only_*]
+        SPECIAL --> MOD_SAVE[Modifier Categories]
+    end
+    
+    classDef mode fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px,color:#000
+    classDef feature fill:#f1f8e9,stroke:#33691e,stroke-width:2px,color:#000
+    classDef component fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    
+    class MT,DL mode
+    class CO,MOD,DESIGN,SAVE,LOAD,NAV,LABEL,SUITS feature
+    class CARDS,ENH,ED,SEAL,DEB,CONT,COLLAB,DEBUG,CLASS,SPECIAL,NC,SO,MOD_SAVE component
+```
+
+## Data Flow Pipeline
+
+```mermaid
+flowchart TD
+    subgraph "Data Collection"
+        SCREEN[Game Screenshots] --> EXT_TOOL[extract_cards_from_screenshot.py]
+        EXT_TOOL --> CARDS_DIR[dataset/debug_cards/]
+    end
+    
+    subgraph "Data Labeling"
+        CARDS_DIR --> GUI_LABEL[GUI Data Labeling Mode]
+        CARDS_DIR --> CLI_LABEL[CLI batch_label_cards.py]
+        
+        GUI_LABEL --> PROCESSED[dataset/processed/]
+        GUI_LABEL --> STATES_OUT[dataset/states/]
+        GUI_LABEL --> ANNOT_OUT[dataset/annotations/]
+        CLI_LABEL --> PROCESSED
+        
+        subgraph "Processed Categories"
+            PROCESSED --> CARD_CLASSES[cards/0-51/]
+            PROCESSED --> NOT_CARD[not_card/]
+            PROCESSED --> SUIT_ONLY[suit_only_*/]
+            PROCESSED --> MODIFIERS[modifiers/category/name/]
+        end
+        
+        subgraph "JSON Outputs"
+            STATES_OUT --> CANONICAL[Canonical State JSON<br/>AI Training Format]
+            ANNOT_OUT --> METADATA[Annotation JSON<br/>Rich Labeling Context]
+        end
+    end
+    
+    subgraph "Model Training"
+        PROCESSED --> DATA_GEN[data_generator.py]
+        CANONICAL --> AI_TRAIN[AI Training Pipeline]
+        METADATA --> DEBUG_ANALYSIS[Training Analysis & Debugging]
+        DATA_GEN --> TRAIN_LOOP[trainer.py]
+        AI_TRAIN --> TRAIN_LOOP
+        TRAIN_LOOP --> MODEL_OUT[models/checkpoints]
+    end
+    
+    subgraph "Inference"
+        MODEL_OUT --> CARD_REC[card_recognizer.py]
+        SCREEN --> CAPTURE[screen_capture.py]
+        CAPTURE --> CARD_REC
+        CARD_REC --> GAME_STATE[Game State Detection]
+    end
+    
+    classDef collection fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
+    classDef labeling fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef training fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef inference fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    
+    class SCREEN,EXT_TOOL,CARDS_DIR collection
+    class GUI_LABEL,CLI_LABEL,PROCESSED,CARD_CLASSES,NOT_CARD,SUIT_ONLY,MODIFIERS labeling
+    class DATA_GEN,TRAIN_LOOP,MODEL_OUT training
+    class CARD_REC,CAPTURE,GAME_STATE inference
+```
+
+## Configuration System
+
+```mermaid
+graph TB
+    subgraph "Configuration Files"
+        COC[card_order_config.json<br/>• Display order mapping<br/>• Sprite sheet references]
+        RM[resource_mapping.json<br/>• Sprite definitions<br/>• File path mappings<br/>• Collab configurations]
+        SS_JSON[state_schema.json<br/>• Game state validation<br/>• ML training structure]
+    end
+    
+    subgraph "Asset Loading"
+        ASSETS_DIR[assets/<br/>Fallback sprites]
+        RES_DIR[resources/textures/1x/<br/>Primary game resources]
+        
+        RM --> SPRITE_LOADER[SpriteLoader]
+        SPRITE_LOADER --> RES_DIR
+        SPRITE_LOADER --> ASSETS_DIR
+    end
+    
+    subgraph "Runtime Configuration"
+        COC --> CARD_MANAGER[CardManager]
+        RM --> DESIGN_MANAGER[DesignManager]
+        SS_JSON --> STATE_BUILDER[StateBuilder]
+        
+        CARD_MANAGER --> DISPLAY[Card Display Order]
+        DESIGN_MANAGER --> COLLABS[Face Card Collaborations]
+        STATE_BUILDER --> ML_PIPELINE[ML Training Pipeline]
+    end
+    
+    classDef config fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef asset fill:#f1f8e9,stroke:#33691e,stroke-width:2px,color:#000
+    classDef runtime fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px,color:#000
+    
+    class COC,RM,SS_JSON config
+    class ASSETS_DIR,RES_DIR,SPRITE_LOADER asset
+    class CARD_MANAGER,DESIGN_MANAGER,STATE_BUILDER,DISPLAY,COLLABS,ML_PIPELINE runtime
+
+## AI Development Pipeline Status
+
+```mermaid
+flowchart TD
+    subgraph "Phase 1: Data Collection & Validation ✅ COMPLETE"
+        A1[Canonical State JSON Integration] --> A2[Schema Validation System]
+        A2 --> A3[Annotation JSON System]
+        A3 --> A4[Dual Data Format Architecture]
+    end
+    
+    subgraph "Phase 2: Data Management ✅ COMPLETE"
+        B1[Dataset Writer System] --> B2[Atomic File Operations]
+        B2 --> B3[Batch Operations & Rollback]
+        B3 --> B4[Dataset Indexer System]
+        B4 --> B5[Integrity Checking & Statistics]
+    end
+    
+    subgraph "Phase 2.1: Data Management Extensions 🚧 NEXT"
+        B6[Schema Migration Support] --> B7[Advanced Reporting]
+        B7 --> B8[Performance Optimization]
+    end
+    
+    subgraph "Phase 3: AI Pipeline Foundation 📋 PLANNED"
+        C1[Nova Integration for State Extraction] --> C2[Training Data Pipeline Automation]
+        C2 --> C3[Hybrid CV + Nova Referee System]
+        C3 --> C4[Policy Agent Training Loop]
+    end
+    
+    subgraph "Current Capabilities"
+        CURR1[✅ Manual card labeling with modifiers]
+        CURR2[✅ Automatic state JSON generation]
+        CURR3[✅ Rich annotation metadata capture]
+        CURR4[✅ Schema validation & error handling]
+        CURR5[✅ Complete labeling workflow integration]
+    end
+    
+    subgraph "Next Steps"
+        NEXT1[🎯 Schema Migration - Version compatibility]
+        NEXT2[🎯 Advanced Reporting - Analysis dashboards]
+        NEXT3[🎯 Performance Optimization - Incremental indexing]
+    end
+    
+    A4 --> B1
+    B5 --> B6
+    B8 --> C1
+    
+    classDef complete fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
+    classDef inprogress fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef planned fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef current fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef next fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    
+    class A1,A2,A3,A4 complete
+    class B1,B2,B3,B4 inprogress
+    class C1,C2,C3,C4 planned
+    class CURR1,CURR2,CURR3,CURR4,CURR5 current
+    class NEXT1,NEXT2,NEXT3 next
+```
+```

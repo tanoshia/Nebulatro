@@ -20,7 +20,7 @@ from src.utils import SpriteLoader
 class DataCollector:
     """Collects and labels training data from screenshots"""
     
-    def __init__(self, output_dir="training_data/processed"):
+    def __init__(self, output_dir="dataset/processed"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         

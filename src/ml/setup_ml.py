@@ -62,8 +62,8 @@ def check_dependencies():
 def setup_directories():
     """Create necessary directories"""
     dirs = [
-        "training_data/raw",
-        "training_data/processed/cards",
+        "dataset/raw",
+        "dataset/processed/cards",
         "models",
         "logs"
     ]

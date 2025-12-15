@@ -340,7 +340,7 @@ class BalatroTracker:
         from pathlib import Path
         
         # Create special label directory
-        special_dir = Path("training_data/processed") / label_type
+        special_dir = Path("dataset/processed") / label_type
         special_dir.mkdir(parents=True, exist_ok=True)
         
         # Load and process image
@@ -618,7 +618,7 @@ class BalatroTracker:
                         continue
                     
                     # Create modifier directory
-                    modifier_dir = Path(f"training_data/processed/modifiers/{folder_category}/{modifier_name}")
+                    modifier_dir = Path(f"dataset/processed/modifiers/{folder_category}/{modifier_name}")
                     modifier_dir.mkdir(parents=True, exist_ok=True)
                     
                     # Save image to modifier folder
@@ -643,7 +643,7 @@ class BalatroTracker:
             card_path = self.labeling_cards[self.current_labeling_index]
             
             # Create category directory
-            category_dir = Path("training_data/processed") / category_folder
+            category_dir = Path("dataset/processed") / category_folder
             category_dir.mkdir(parents=True, exist_ok=True)
             
             # Copy the image to the category directory
@@ -1019,7 +1019,7 @@ class BalatroTracker:
         
         directory = filedialog.askdirectory(
             title="Select directory with card images to label",
-            initialdir="training_data/raw_cards"
+            initialdir="dataset/raw_cards"
         )
         
         if not directory:
@@ -1067,7 +1067,7 @@ class BalatroTracker:
         """Check if card is already labeled and return status and card name"""
         try:
             # Check if there's a corresponding labeled file in processed directories
-            processed_base = Path("training_data/processed")
+            processed_base = Path("dataset/processed")
             
             # Look for the card in all class directories
             for class_dir in processed_base.glob("cards/*/"):

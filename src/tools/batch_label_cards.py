@@ -55,7 +55,7 @@ def batch_label_directory(cards_dir):
 def main():
     if len(sys.argv) != 2:
         print("Usage: python batch_label_cards.py <directory>")
-        print("Example: python batch_label_cards.py training_data/debug_cards/")
+        print("Example: python batch_label_cards.py dataset/debug_cards/")
         return
     
     cards_dir = sys.argv[1]

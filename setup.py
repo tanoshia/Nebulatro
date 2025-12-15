@@ -7,7 +7,7 @@ DEVELOPMENT SETUP:
 2. Activate: source venv/bin/activate
 3. Install deps: pip install -r requirements.txt
 4. Install tkinter: brew install python-tk@3.13
-5. Run: python3 balatro_tracker.py
+5. Run: python3 nebulatro.py
 
 BUILD STANDALONE APP:
 1. Install py2app: pip install py2app
@@ -26,7 +26,7 @@ REBUILD:
 
 from setuptools import setup
 
-APP = ['balatro_tracker.py']
+APP = ['nebulatro.py']
 DATA_FILES = [
     'card_order_config.json',
     'resource_mapping.json',

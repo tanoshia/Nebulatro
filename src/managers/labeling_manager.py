@@ -31,7 +31,7 @@ class LabelingManager:
         # Ask user to select directory containing cards to label
         cards_dir = filedialog.askdirectory(
             title="Select directory containing cards to label",
-            initialdir="training_data/debug_cards"
+            initialdir="dataset/debug_cards"
         )
         
         if not cards_dir:
@@ -194,7 +194,7 @@ class LabelingManager:
         """Check if card is already labeled and return status and card name"""
         try:
             # Check if there's a corresponding labeled file in processed directories
-            processed_base = Path("training_data/processed")
+            processed_base = Path("dataset/processed")
             
             # Look for the card in all class directories
             for class_dir in processed_base.glob("cards/*/"):
@@ -442,9 +442,28 @@ class LabelingManager:
             # Save to modifier folders if modifiers are applied
             modifier_count = self.save_modifier_labels(card_path, label_text)
             
+            # Build and validate canonical state JSON for playing cards
+            state_path = None
+            if isinstance(self.selected_card_class, int) and 0 <= self.selected_card_class <= 51:
+                try:
+                    state_path = self._save_canonical_state(card_path)
+                except Exception as e:
+                    messagebox.showerror("State Validation Error", 
+                                       f"Failed to create valid game state: {e}\n\nLabel saved but state not created.")
+                    print(f"Warning: State validation failed: {e}")
+            
+            # Save annotation JSON for all label types
+            annotation_path = None
+            try:
+                annotation_path = self._save_annotation(card_path)
+            except Exception as e:
+                print(f"Warning: Failed to save annotation: {e}")
+            
             # Show save status in console (no popup)
             modifier_info = f" (+ {modifier_count} modifier folders)" if modifier_count > 0 else ""
-            print(f"✓ Card labeled as: {label_text} -> {output_path}{modifier_info}")
+            state_info = f" + state JSON" if state_path else ""
+            annotation_info = f" + annotation JSON" if annotation_path else ""
+            print(f"✓ Card labeled as: {label_text} -> {output_path}{modifier_info}{state_info}{annotation_info}")
             
             # Update matched card display to show confirmed status
             if self.selected_card_class is not None:
@@ -465,22 +484,21 @@ class LabelingManager:
             
             # Determine output directory
             if label_type == "not_card":
-                special_dir = Path("training_data/processed/not_card")
+                special_dir = Path("dataset/processed/not_card")
             elif str(label_type).startswith("suit_only"):
                 suit_part = str(label_type).replace("suit_only_", "")
-                special_dir = Path(f"training_data/processed/suit_only_{suit_part}")
+                special_dir = Path(f"dataset/processed/suit_only_{suit_part}")
             else:
                 raise ValueError(f"Unknown special label type: {label_type}")
             
             # Create directory
             special_dir.mkdir(parents=True, exist_ok=True)
             
-            # Load and save image
-            image = cv2.imread(str(card_path))
-            h, w = image.shape[:2]
-            # Save image
-            output_path = special_dir / f"{card_path.stem}.png"
-            cv2.imwrite(str(output_path), image)
+            # Use dataset writer for atomic file operations
+            from src.ml.dataset_writer import get_dataset_writer
+            dataset_writer = get_dataset_writer()
+            
+            output_path = dataset_writer.write_labeled_image(card_path, label_type)
             
             return output_path
             
@@ -497,14 +515,14 @@ class LabelingManager:
             card_path = self.labeling_cards[self.current_labeling_index]
             
             # Create category directory
-            category_dir = Path("training_data/processed") / category_folder
+            category_dir = Path("dataset/processed") / category_folder
             category_dir.mkdir(parents=True, exist_ok=True)
             
-            # Copy the image to the category directory
-            output_path = category_dir / f"{card_path.stem}.png"
+            # Use dataset writer for atomic file operations
+            from src.ml.dataset_writer import get_dataset_writer
+            dataset_writer = get_dataset_writer()
             
-            import shutil
-            shutil.copy2(card_path, output_path)
+            output_path = dataset_writer.write_labeled_image(card_path, category_folder)
             
             print(f"✓ Saved to: {output_path}")
             print(f"✓ Card labeled as: {category_name} -> {output_path}")
@@ -601,12 +619,16 @@ class LabelingManager:
                         continue
                     
                     # Create modifier directory
-                    modifier_dir = Path(f"training_data/processed/modifiers/{folder_category}/{modifier_name}")
+                    modifier_dir = Path(f"dataset/processed/modifiers/{folder_category}/{modifier_name}")
                     modifier_dir.mkdir(parents=True, exist_ok=True)
                     
-                    # Save image to modifier folder
-                    modifier_path = modifier_dir / f"{card_path.stem}.png"
-                    shutil.copy2(card_path, modifier_path)
+                    # Use dataset writer for atomic file operations
+                    from src.ml.dataset_writer import get_dataset_writer
+                    dataset_writer = get_dataset_writer()
+                    
+                    modifier_path = dataset_writer.write_modifier_image(
+                        card_path, folder_category, modifier_name
+                    )
                     
                     print(f"✓ Modifier saved: {modifier_name} -> {modifier_path}")
                     saved_count += 1
@@ -616,3 +638,74 @@ class LabelingManager:
         except Exception as e:
             print(f"Warning: Could not save modifier labels: {e}")
             return 0
+    
+    def _save_canonical_state(self, card_path):
+        """Build, validate, and save canonical state JSON for the current labeling."""
+        from src.ml.state_builder import build_canonical_state_from_labeling, save_canonical_state
+        from src.ml.state_schema import validate_state, StateValidationError
+        
+        # Get image ID from card path
+        image_id = Path(card_path).stem
+        
+        # Get selected modifiers
+        selected_modifiers = self.modifier_manager.get_selected_modifiers()
+        
+        # Get image resolution if available
+        resolution = None
+        try:
+            import cv2
+            image = cv2.imread(str(card_path))
+            if image is not None:
+                h, w = image.shape[:2]
+                resolution = (w, h)
+        except Exception:
+            pass  # Resolution is optional
+        
+        # Build canonical state
+        state = build_canonical_state_from_labeling(
+            selected_card_class=self.selected_card_class,
+            applied_modifiers=selected_modifiers,
+            image_id=image_id,
+            resolution=resolution
+        )
+        
+        # Validate state against schema
+        try:
+            validate_state(state)
+        except StateValidationError as e:
+            raise Exception(f"State validation failed: {e}")
+        
+        # Save canonical state JSON
+        state_path = save_canonical_state(state, image_id)
+        
+        return state_path
+    
+    def _save_annotation(self, card_path):
+        """Build and save annotation JSON for the current labeling."""
+        from src.ml.annotation_builder import build_annotation_from_labeling, save_annotation
+        
+        # Get image ID from card path
+        image_id = Path(card_path).stem
+        
+        # Get selected modifiers
+        selected_modifiers = self.modifier_manager.get_selected_modifiers()
+        
+        # Build session info
+        session_info = {
+            "labeling_index": self.current_labeling_index,
+            "total_cards": len(self.labeling_cards),
+            "labeling_mode": "data_labeling"
+        }
+        
+        # Build annotation
+        annotation = build_annotation_from_labeling(
+            image_path=card_path,
+            selected_card_class=self.selected_card_class,
+            applied_modifiers=selected_modifiers,
+            labeling_session_info=session_info
+        )
+        
+        # Save annotation JSON
+        annotation_path = save_annotation(annotation, image_id)
+        
+        return annotation_path

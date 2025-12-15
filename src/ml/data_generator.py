@@ -156,7 +156,7 @@ class BalatroCardDataset(Dataset):
 class RealDatasetFromScreenshots(Dataset):
     """Dataset from manually labeled screenshots"""
     
-    def __init__(self, data_dir="training_data/processed", transform=None):
+    def __init__(self, data_dir="dataset/processed", transform=None):
         """
         Args:
             data_dir: Directory containing labeled card images
@@ -173,7 +173,7 @@ class RealDatasetFromScreenshots(Dataset):
         samples = []
         
         # Expected structure:
-        # training_data/processed/
+        # dataset/processed/
         #   cards/
         #     0/  (2 of Hearts)
         #       image_001.png

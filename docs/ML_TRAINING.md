@@ -32,7 +32,7 @@ Training Scripts:
 └── collect_training_data.py  # Data labeling tool
 
 Output:
-├── training_data/
+├── dataset/
 │   ├── raw/               # Original screenshots
 │   └── processed/         # Labeled card images
 │       └── cards/
@@ -78,7 +78,7 @@ python collect_training_data.py screenshots_folder/
 1. Tool detects card regions automatically
 2. Shows each card corner (35% top-left region)
 3. User enters class number (0-51) or 's' to skip
-4. Cards saved to `training_data/processed/cards/CLASS_ID/`
+4. Cards saved to `dataset/processed/cards/CLASS_ID/`
 
 **Card Class Mapping:**
 - 0-12: Hearts (2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K, A)
@@ -228,7 +228,7 @@ python compare_cards.py debug_cards/card_1.png
 python view_card.py debug_cards/card_1.png
 
 # Check training data
-python collect_training_data.py --preview training_data/processed/
+python collect_training_data.py --preview dataset/processed/
 ```
 
 ## Extending to Jokers
@@ -289,10 +289,22 @@ card_idx, confidence = model.predict(card_tensor)
 
 ## Change Log
 
-### 2024-12-07
+### 2025-12-07
 - Initial ML training pipeline implementation
 - ResNet18 and lightweight card classifiers
 - Synthetic data generation from game assets
 - Training scripts and data collection tools
 - Multi-label modifier classifier framework
 - GPU training support with CUDA optimization
+
+---
+
+## 2025-12-12 Alignment Update
+
+This document now explicitly assumes:
+- Full-card image training (not corner crops)
+- Labels originate from the Nebulatro GUI data-labeling mode
+- Folder-based datasets are derived artifacts, not canonical truth
+- State-level learning is handled upstream, not inside CNNs
+
+No architectural contradictions with the current Nebulatro codebase were found.

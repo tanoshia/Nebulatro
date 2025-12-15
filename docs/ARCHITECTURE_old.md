@@ -116,7 +116,7 @@ To add a new feature:
 
 1. Determine which manager it belongs to (or create a new one)
 2. Add methods to the appropriate manager
-3. Add event handlers in `balatro_tracker.py`
+3. Add event handlers in `nebulatro.py`
 4. Wire up UI elements in `ui_components.py` if needed
 5. Update knowledgebase.md with the changes
 

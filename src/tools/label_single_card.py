@@ -51,29 +51,17 @@ def label_card(image_path):
     preview_path = preview_dir / f"{image_path.stem}_preview.png"
     cv2.imwrite(str(preview_path), processed_image)
     
-    # Also save a side-by-side comparison
-    full_resized = cv2.resize(image, (200, 240))  # Resize full card for comparison
-    corner_resized = cv2.resize(corner, (200, 240))  # Resize corner to same size
-    
-    # Create side-by-side image
-    comparison = np.hstack([full_resized, corner_resized])
-    comparison_path = preview_dir / f"{image_path.stem}_comparison.png"
-    cv2.imwrite(str(comparison_path), comparison)
-    
     print(f"\nLabeling: {image_path.name}")
     print(f"Card size: {image.shape[1]}x{image.shape[0]}")
-    print(f"Corner size: {corner.shape[1]}x{corner.shape[0]}")
-    print(f"Corner preview: {preview_path}")
-    print(f"Comparison view: {comparison_path}")
-    print("(Left=full card, Right=corner that model sees)")
+    print(f"Preview saved: {preview_path}")
     
-    # Try to open the comparison image automatically
+    # Try to open the preview image automatically
     try:
         import subprocess
-        subprocess.run(["open", str(comparison_path)], check=False)
-        print("✓ Opened comparison image")
+        subprocess.run(["open", str(preview_path)], check=False)
+        print("✓ Opened preview image")
     except:
-        print("→ Please open the comparison image manually to see the card")
+        print("→ Please open the preview image manually to see the card")
     
     show_card_reference()
     
@@ -101,19 +89,13 @@ def label_card(image_path):
 
 def save_labeled_card(image_path, class_id):
     """Save labeled card to training directory"""
+    from ..ml.dataset_writer import get_dataset_writer
+    
     image_path = Path(image_path)
+    dataset_writer = get_dataset_writer()
     
-    # Create class directory
-    class_dir = Path("training_data/processed/cards") / str(class_id)
-    class_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Load and process image
-    image = cv2.imread(str(image_path))
-    processed_image = process_image(image)
-    
-    # Save processed image (full image for training)
-    output_path = class_dir / f"{image_path.stem}.png"
-    cv2.imwrite(str(output_path), processed_image)
+    # Use dataset writer for atomic file operations
+    output_path = dataset_writer.write_labeled_image(image_path, class_id)
     
     print(f"✓ Saved to: {output_path}")
     
