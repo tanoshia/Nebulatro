@@ -289,10 +289,10 @@
       "resource_file": "Vouchers.png",
       "fallback_file": null,
       "grid": {
-        "cols": null,
-        "rows": null
+        "cols": 9,
+        "rows": 4
       },
-      "description": "Voucher cards (grid size TBD)"
+      "description": "Voucher cards (9x4 grid, 36 vouchers)"
     }
   },
   

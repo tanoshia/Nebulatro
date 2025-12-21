@@ -1,0 +1,247 @@
+{
+  "schema_version": "1.0",
+  "created": 1765610519,
+  "last_updated": 1765610519,
+  "summary": {
+    "total_files": 25,
+    "total_size_bytes": 35309143,
+    "states_count": 5,
+    "annotations_count": 1,
+    "processed_images_count": 16,
+    "raw_images_count": 3,
+    "card_classes": {},
+    "modifier_categories": {
+      "enhancements": 3
+    },
+    "label_types": {
+      "null": 1
+    },
+    "last_updated": 1765610519
+  },
+  "states": {
+    "states/BalatroExample2_card5.state.json": {
+      "path": "states/BalatroExample2_card5.state.json",
+      "size_bytes": 702,
+      "modified": 1765587993,
+      "category": "states",
+      "schema_version": "1.1",
+      "screen_type": "play",
+      "hand_size": 1,
+      "jokers_count": 0,
+      "valid_json": true
+    },
+    "states/BalatroExample1_card12.state.json": {
+      "path": "states/BalatroExample1_card12.state.json",
+      "size_bytes": 707,
+      "modified": 1765587943,
+      "category": "states",
+      "schema_version": "1.1",
+      "screen_type": "play",
+      "hand_size": 1,
+      "jokers_count": 0,
+      "valid_json": true
+    },
+    "states/BalatroExample2_card2.state.json": {
+      "path": "states/BalatroExample2_card2.state.json",
+      "size_bytes": 723,
+      "modified": 1765587984,
+      "category": "states",
+      "schema_version": "1.1",
+      "screen_type": "play",
+      "hand_size": 1,
+      "jokers_count": 0,
+      "valid_json": true
+    },
+    "states/BalatroExample2_card9.state.json": {
+      "path": "states/BalatroExample2_card9.state.json",
+      "size_bytes": 727,
+      "modified": 1765588007,
+      "category": "states",
+      "schema_version": "1.1",
+      "screen_type": "play",
+      "hand_size": 1,
+      "jokers_count": 0,
+      "valid_json": true
+    },
+    "states/BalatroExample2_card6.state.json": {
+      "path": "states/BalatroExample2_card6.state.json",
+      "size_bytes": 724,
+      "modified": 1765587996,
+      "category": "states",
+      "schema_version": "1.1",
+      "screen_type": "play",
+      "hand_size": 1,
+      "jokers_count": 0,
+      "valid_json": true
+    }
+  },
+  "annotations": {
+    "annotations/batch_processing_results.json": {
+      "path": "annotations/batch_processing_results.json",
+      "size_bytes": 4998,
+      "modified": 1765610519,
+      "category": "annotations",
+      "label_type": null,
+      "selected_class": null,
+      "modifiers_count": 0,
+      "has_hand": false,
+      "valid_json": true
+    }
+  },
+  "processed_images": {
+    "processed/suit_only_c/BalatroExample2_card4.png": {
+      "path": "processed/suit_only_c/BalatroExample2_card4.png",
+      "size_bytes": 21509,
+      "modified": 1765587990,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_c"
+    },
+    "processed/suit_only_c/BalatroExample1_card4.png": {
+      "path": "processed/suit_only_c/BalatroExample1_card4.png",
+      "size_bytes": 7450,
+      "modified": 1765587970,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_c"
+    },
+    "processed/suit_only_c/BalatroExample1_card6.png": {
+      "path": "processed/suit_only_c/BalatroExample1_card6.png",
+      "size_bytes": 7534,
+      "modified": 1765587971,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_c"
+    },
+    "processed/suit_only_c/BalatroExample1_card2.png": {
+      "path": "processed/suit_only_c/BalatroExample1_card2.png",
+      "size_bytes": 49989,
+      "modified": 1765587968,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_c"
+    },
+    "processed/suit_only_c/BalatroExample1_card3.png": {
+      "path": "processed/suit_only_c/BalatroExample1_card3.png",
+      "size_bytes": 7616,
+      "modified": 1765587969,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_c"
+    },
+    "processed/suit_only_d/BalatroExample1_card9.png": {
+      "path": "processed/suit_only_d/BalatroExample1_card9.png",
+      "size_bytes": 6918,
+      "modified": 1765587973,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_d"
+    },
+    "processed/suit_only_d/BalatroExample1_card10.png": {
+      "path": "processed/suit_only_d/BalatroExample1_card10.png",
+      "size_bytes": 6852,
+      "modified": 1765587961,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_d"
+    },
+    "processed/suit_only_d/BalatroExample1_card11.png": {
+      "path": "processed/suit_only_d/BalatroExample1_card11.png",
+      "size_bytes": 6448,
+      "modified": 1765587962,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_d"
+    },
+    "processed/suit_only_h/BalatroExample2_card1.png": {
+      "path": "processed/suit_only_h/BalatroExample2_card1.png",
+      "size_bytes": 33093,
+      "modified": 1765587977,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_h"
+    },
+    "processed/suit_only_h/BalatroExample1_card1.png": {
+      "path": "processed/suit_only_h/BalatroExample1_card1.png",
+      "size_bytes": 38532,
+      "modified": 1765587960,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "suit_only_h"
+    },
+    "processed/card_backs/BalatroExample2_card11.png": {
+      "path": "processed/card_backs/BalatroExample2_card11.png",
+      "size_bytes": 197844,
+      "modified": 1765405656,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "card_backs"
+    },
+    "processed/card_backs/BalatroExample2_card10.png": {
+      "path": "processed/card_backs/BalatroExample2_card10.png",
+      "size_bytes": 188808,
+      "modified": 1765405656,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "card_backs"
+    },
+    "processed/card_backs/BalatroExample1_card13.png": {
+      "path": "processed/card_backs/BalatroExample1_card13.png",
+      "size_bytes": 393232,
+      "modified": 1765405646,
+      "category": "processed_images",
+      "file_type": "image",
+      "special_category": "card_backs"
+    },
+    "processed/modifiers/enhancements/mult_enhancement/BalatroExample2_card6.png": {
+      "path": "processed/modifiers/enhancements/mult_enhancement/BalatroExample2_card6.png",
+      "size_bytes": 108285,
+      "modified": 1765405656,
+      "category": "processed_images",
+      "file_type": "image",
+      "modifier_category": "enhancements",
+      "modifier_name": "mult_enhancement"
+    },
+    "processed/modifiers/enhancements/mult_enhancement/BalatroExample2_card2.png": {
+      "path": "processed/modifiers/enhancements/mult_enhancement/BalatroExample2_card2.png",
+      "size_bytes": 15277,
+      "modified": 1765405656,
+      "category": "processed_images",
+      "file_type": "image",
+      "modifier_category": "enhancements",
+      "modifier_name": "mult_enhancement"
+    },
+    "processed/modifiers/enhancements/bonus_enhancement/BalatroExample2_card9.png": {
+      "path": "processed/modifiers/enhancements/bonus_enhancement/BalatroExample2_card9.png",
+      "size_bytes": 80451,
+      "modified": 1765405656,
+      "category": "processed_images",
+      "file_type": "image",
+      "modifier_category": "enhancements",
+      "modifier_name": "bonus_enhancement"
+    }
+  },
+  "raw_images": {
+    "raw/BalatroExample2.png": {
+      "path": "raw/BalatroExample2.png",
+      "size_bytes": 7564561,
+      "modified": 1764506173,
+      "category": "raw_images",
+      "file_type": "image"
+    },
+    "raw/BalatroExample3.png": {
+      "path": "raw/BalatroExample3.png",
+      "size_bytes": 11704427,
+      "modified": 1765590478,
+      "category": "raw_images",
+      "file_type": "image"
+    },
+    "raw/BalatroExample1.png": {
+      "path": "raw/BalatroExample1.png",
+      "size_bytes": 14861736,
+      "modified": 1765181976,
+      "category": "raw_images",
+      "file_type": "image"
+    }
+  }
+}

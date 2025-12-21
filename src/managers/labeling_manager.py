@@ -24,48 +24,52 @@ class LabelingManager:
         self.selected_card_class = None
         self.current_labeling_image = None
         
+        # Annotation window manager (lazy initialization)
+        self._annotation_window_manager = None
+    
+    @property
+    def annotation_window_manager(self):
+        """Get the annotation window manager, creating it if needed."""
+        if self._annotation_window_manager is None:
+            from .annotation_window_manager import AnnotationWindowManager
+            self._annotation_window_manager = AnnotationWindowManager(self)
+        return self._annotation_window_manager
+        
     def load_cards_for_labeling(self):
-        """Load cards from debug_cards directory for labeling"""
+        """Load screenshot for annotation in secondary window"""
         from tkinter import filedialog
         
+<<<<<<< Updated upstream
         # Ask user to select directory containing cards to label
         cards_dir = filedialog.askdirectory(
             title="Select directory containing cards to label",
             initialdir="training_data/debug_cards"
+=======
+        # Ask user to select a screenshot for annotation
+        screenshot_path = filedialog.askopenfilename(
+            title="Select Balatro screenshot for annotation",
+            initialdir="dataset/raw",
+            filetypes=[
+                ("PNG files", "*.png"),
+                ("JPG files", "*.jpg"),
+                ("JPEG files", "*.jpeg"),
+                ("All image files", "*.png *.jpg *.jpeg")
+            ]
+>>>>>>> Stashed changes
         )
         
-        if not cards_dir:
+        if not screenshot_path:
             return
-            
-        cards_path = Path(cards_dir)
-        if not cards_path.exists():
-            messagebox.showerror("Error", f"Directory not found: {cards_dir}")
-            return
-            
-        # Find all image files
-        image_extensions = {'.png', '.jpg', '.jpeg'}
-        image_files = [f for f in cards_path.iterdir() 
-                      if f.suffix.lower() in image_extensions and f.is_file()]
         
-        # Filter out preview and comparison files
-        image_files = [f for f in image_files if 'preview' not in f.name.lower() 
-                      and 'comparison' not in f.name.lower()
-                      and 'region' not in f.name.lower()]
+        # Spawn annotation window with the selected screenshot
+        success = self.annotation_window_manager.spawn_annotation_window(screenshot_path)
         
-        if not image_files:
-            messagebox.showwarning("No Images", f"No image files found in {cards_dir}")
-            return
-            
-        # Sort files for consistent order
-        self.labeling_cards = sorted(image_files)
-        self.current_labeling_index = 0
-        
-        # Enable navigation buttons
-        self.ui.prev_card_btn.configure(state=tk.NORMAL)
-        self.ui.next_card_btn.configure(state=tk.NORMAL)
-        self.ui.skip_card_btn.configure(state=tk.NORMAL)
-        self.ui.not_card_btn.configure(state=tk.NORMAL)
-        self.ui.save_label_btn.configure(state=tk.NORMAL)
+        if success:
+            # Update UI to indicate annotation mode is active
+            if hasattr(self.ui, 'status_label'):
+                self.ui.status_label.config(text="Annotation window opened - Draw bounding boxes and select cards")
+        else:
+            messagebox.showerror("Error", "Failed to open annotation window")
         
         # Enable additional label category buttons
         self.ui.card_backs_btn.configure(state=tk.NORMAL)

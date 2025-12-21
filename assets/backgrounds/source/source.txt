@@ -1,0 +1,54 @@
+1-2min snippets of a 1hr video for each, taken starting at 60s
+
+Source:
+https://www.youtube.com/@KF-2015/videos
+
+Main Menu:
+https://www.youtube.com/watch?v=7GutRIhmTwQ
+
+Felt (Normal):
+https://www.youtube.com/watch?v=RQ_lf3LwURE
+
+Celestial:
+https://www.youtube.com/watch?v=oxhEmQt9HiI
+Arcana:
+https://www.youtube.com/watch?v=XauV2hDVgLg
+
+Boss Blinds:
+The Hook:
+https://www.youtube.com/watch?v=ObrNhUUyfrU
+The Ox:
+https://www.youtube.com/watch?v=wuMjV14m8uo
+The Mouth:
+https://www.youtube.com/watch?v=BcDcBQAbj_Q&pp=0gcJCTwKAYcqIYzv
+The Fish:
+https://www.youtube.com/watch?v=XXYyc66k2R0
+The Club:
+https://www.youtube.com/watch?v=MIfLZx1bLnM
+The Manacle:
+https://www.youtube.com/watch?v=CI5t6jyuZLA
+The Tooth:
+https://www.youtube.com/watch?v=Zx2C9WeBWoE
+The Wall:
+https://www.youtube.com/watch?v=_RF-vclLT_c
+The Mark:
+https://www.youtube.com/watch?v=tXa4N2fUl5Y
+The House:
+https://www.youtube.com/watch?v=hNmJVmqtjqw
+The Wheel:
+https://www.youtube.com/watch?v=eQlM1ov_Ziw
+
+
+
+
+To Use as Backgrounds:
+12x Felt_RQ_lf3LwURE
+10x Celestial_oxhEmQt9HiI
+10x Arcana_XauV2hDVgLg
+4x The_Ox_wuMjV14m8uo
+4x The_Club_MIfLZx1bLnM
+4x The_Fish_XXYyc66k2R0
+4x The_Mark_tXa4N2fUl5Y
+
+./crop_all.sh
+./extract_frames.sh [QUANTITY]

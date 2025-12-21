@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nebulatro.local/schema/ground_truth.schema.json",
+  "title": "Balatro Screenshot Ground Truth",
+  "description": "Ground truth annotations for Balatro screenshots used in detection evaluation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "image_id",
+    "image_info",
+    "regions",
+    "cards",
+    "jokers",
+    "metadata"
+  ],
+  "properties": {
+    "image_id": {
+      "type": "string",
+      "description": "Unique identifier for the screenshot (filename without extension)"
+    },
+    "image_info": {
+      "type": "object",
+      "required": ["width", "height", "file_path"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "file_path": {"type": "string"},
+        "resolution_category": {
+          "type": "string",
+          "enum": ["1080p", "1440p", "4K", "other"]
+        }
+      }
+    },
+    "regions": {
+      "type": "object",
+      "description": "Screen regions as defined in our architecture",
+      "required": ["data_region", "jokers_region", "cards_region"],
+      "properties": {
+        "data_region": {
+          "$ref": "#/$defs/region_bounds"
+        },
+        "jokers_region": {
+          "$ref": "#/$defs/region_bounds"
+        },
+        "cards_region": {
+          "$ref": "#/$defs/region_bounds"
+        }
+      }
+    },
+    "cards": {
+      "type": "array",
+      "description": "Playing cards in hand (cards region)",
+      "items": {
+        "$ref": "#/$defs/card_annotation"
+      }
+    },
+    "jokers": {
+      "type": "array",
+      "description": "Joker cards (jokers region)",
+      "items": {
+        "$ref": "#/$defs/joker_annotation"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "annotated_by": {"type": "string"},
+        "annotation_date": {"type": "string", "format": "date-time"},
+        "game_state": {
+          "type": "string",
+          "enum": ["play", "shop", "pack_opening", "blind_select", "other"]
+        },
+        "difficulty_level": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"],
+          "description": "How difficult this image is for detection"
+        },
+        "notes": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "region_bounds": {
+      "type": "object",
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"type": "integer", "minimum": 0},
+        "y": {"type": "integer", "minimum": 0},
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1}
+      }
+    },
+    "bounding_box": {
+      "type": "object",
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"type": "integer", "minimum": 0},
+        "y": {"type": "integer", "minimum": 0},
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1}
+      }
+    },
+    "card_annotation": {
+      "type": "object",
+      "required": ["bbox", "rank", "suit"],
+      "properties": {
+        "bbox": {"$ref": "#/$defs/bounding_box"},
+        "rank": {
+          "type": "string",
+          "enum": ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+        },
+        "suit": {
+          "type": "string",
+          "enum": ["spades", "hearts", "clubs", "diamonds"]
+        },
+        "card_class": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 51,
+          "description": "0-51 card class (0-12=hearts, 13-25=clubs, 26-38=diamonds, 39-51=spades)"
+        },
+        "modifiers": {
+          "type": "object",
+          "properties": {
+            "enhancement": {
+              "type": ["string", "null"],
+              "enum": ["bonus", "mult", "wild", "glass", "steel", "stone", "gold", "lucky", null]
+            },
+            "edition": {
+              "type": ["string", "null"],
+              "enum": ["foil", "holographic", "polychrome", null]
+            },
+            "seal": {
+              "type": ["string", "null"],
+              "enum": ["gold", "red", "blue", "purple", null]
+            },
+            "debuff": {"type": "boolean", "default": false}
+          }
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["full", "partial", "occluded"],
+          "description": "How much of the card is visible"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["certain", "likely", "uncertain"],
+          "description": "Annotator confidence in this label"
+        }
+      }
+    },
+    "joker_annotation": {
+      "type": "object",
+      "required": ["bbox", "joker_name"],
+      "properties": {
+        "bbox": {"$ref": "#/$defs/bounding_box"},
+        "joker_name": {
+          "type": "string",
+          "description": "Name of the joker (e.g., 'Joker', 'Greedy Joker', 'Lusty Joker')"
+        },
+        "joker_id": {
+          "type": "string",
+          "description": "Internal joker ID if known"
+        },
+        "modifiers": {
+          "type": "object",
+          "properties": {
+            "edition": {
+              "type": ["string", "null"],
+              "enum": ["foil", "holographic", "polychrome", null]
+            },
+            "debuff": {"type": "boolean", "default": false}
+          }
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["full", "partial", "occluded"]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["certain", "likely", "uncertain"]
+        }
+      }
+    }
+  }
+}

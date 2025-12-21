@@ -183,9 +183,20 @@ class BalatroTracker:
                 # Add card to order with sprite and modifiers
                 self.card_manager.add_card_to_order(card_name, final_sprite, modifiers_applied)
         elif current_mode == "Data Labeling":
-            # Set selected card for labeling
-            self.labeling_manager.selected_card_class = card_class
-            self.card_display_manager.update_matched_card_display(card_class, "selected")
+            # Check if annotation window has pending bounding box
+            if (hasattr(self.labeling_manager, 'annotation_window_manager') and 
+                self.labeling_manager.annotation_window_manager.is_annotation_window_active() and
+                self.labeling_manager.annotation_window_manager.state_manager.pending_bbox):
+                # Complete annotation with selected card
+                success = self.labeling_manager.annotation_window_manager.handle_card_selection(card_class)
+                if success:
+                    self.card_display_manager.update_matched_card_display(card_class, "confirmed")
+                else:
+                    messagebox.showerror("Error", "Failed to complete annotation")
+            else:
+                # Set selected card for labeling (existing behavior)
+                self.labeling_manager.selected_card_class = card_class
+                self.card_display_manager.update_matched_card_display(card_class, "selected")
     
     def _on_modifier_change(self):
         """Handle modifier selection changes"""
@@ -273,6 +284,13 @@ class BalatroTracker:
     def _on_mode_change(self, event=None):
         """Handle mode switching"""
         current_mode = self.ui.app_mode.get()
+        
+        # Close annotation window if switching away from Data Labeling mode
+        if (current_mode != "Data Labeling" and 
+            hasattr(self.labeling_manager, '_annotation_window_manager') and
+            self.labeling_manager._annotation_window_manager is not None):
+            self.labeling_manager.annotation_window_manager.close_annotation_window()
+        
         self.mode_manager.switch_mode(current_mode)
     
 
